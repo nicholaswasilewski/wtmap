@@ -1,4 +1,4 @@
-#if !defined(WTMAP_PLATFORM_H)
+#if !defined(WTMAP__H)
 #include <stdint.h>
 
 typedef __int8 int8;
@@ -71,5 +71,5 @@ typedef struct game_state
     //player position
 } game_state;
 
-#define WTMAP_PLATFORM_H
+#define WTMAP__H
 #endif

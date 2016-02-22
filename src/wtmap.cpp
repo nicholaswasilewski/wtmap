@@ -1,7 +1,12 @@
-#include "wtmap_platform.h"
+#include "wtmap.h"
 
 
-void DrawRectangle(game_screen_buffer*)
+void DrawRectangle(game_screen_buffer* ScreenBuffer,
+                   v2 Min,
+                   v2 Max,
+                   float R,
+                   float G,
+                   float B)
 {
 }
 

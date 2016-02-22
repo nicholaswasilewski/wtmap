@@ -1,4 +1,4 @@
-#include "wtmap_platform.h"
+#include "wtmap.h" //doesn't strictly need this, but if I move do a dll thing, I'd need this
 #include "wtmap.cpp"
 
 #include <stdio.h>
