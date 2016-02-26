@@ -1,6 +1,7 @@
 #if !defined(WTMAP__H)
 #include <stdint.h>
 #include "Vector2.h"
+#include "Camera.h"
 
 typedef __int8 int8;
 typedef unsigned __int8 uint8;
@@ -75,7 +76,7 @@ typedef struct game_state
     //maps, but for now...
     int Tiles[MAP_WIDTH*MAP_HEIGHT];
     //floor map, other state
-    v2 CameraPosition;
+    camera Camera;
     //player position
 } game_state;
 

@@ -53,15 +53,25 @@ void DrawRectangle(game_screen_buffer* ScreenBuffer,
     }
 }
 
-void DrawTile(game_screen_buffer* ScreenBuffer, color TileColor, v2 TilePosition)
+
+//world size = 1 tile = 1 meter (or something like that)
+void DrawTile(game_screen_buffer* ScreenBuffer, camera* Camera, color TileColor, v2 TilePosition)
 {
     int TilePixels = 16;
-    v2 Min = V2((TilePosition.X * TilePixels)+1, (TilePosition.Y * TilePixels)+1);
+
+    v2 TileCenterPosition = TilePosition + V2(0.5f, 0.5f);
+    v2 TileCenterScreenPoint = WorldPointToScreenPoint(Camera,
+                                                       TilePixels,
+                                                       V2(ScreenBuffer->Width/2, ScreenBuffer->Height/2),
+                                                       TileCenterPosition);
+
+    v2 ScreenTileSize = V2(0.5f*TilePixels, 0.5f*TilePixels);
+    v2 Min = (TileCenterScreenPoint - ScreenTileSize) + V2(1,1);
     v2 Max = Min + V2(TilePixels-1, TilePixels-1);
     DrawRectangle(ScreenBuffer, Min, Max, TileColor.R, TileColor.G, TileColor.B);
 }
 
-void DrawMap(game_screen_buffer* ScreenBuffer, v2 CameraPosition, int* Tiles)
+void DrawMap(game_screen_buffer* ScreenBuffer, camera* Camera, int* Tiles)
 {
     int* Row = Tiles; 
     for(int y = 0; y < MAP_HEIGHT; y++)
@@ -69,11 +79,21 @@ void DrawMap(game_screen_buffer* ScreenBuffer, v2 CameraPosition, int* Tiles)
         int* Tile = Row;
         for(int x = 0; x < MAP_WIDTH; x++)
         {   
-            DrawTile(ScreenBuffer, TileData[*Tile].Color, V2(x, y));
+            DrawTile(ScreenBuffer, Camera, TileData[*Tile].Color, V2(x, y));
             Tile += 1;
         }
         Row += MAP_WIDTH;
     }
+}
+
+void ClearScreenBuffer(game_screen_buffer *ScreenBuffer, color FillColor)
+{
+    DrawRectangle(ScreenBuffer,
+                  V2(0,0),
+                  V2(ScreenBuffer->Width, ScreenBuffer->Height),
+                  FillColor.R,
+                  FillColor.G,
+                  FillColor.B);
 }
 
 void UpdateAndRender(game_input* Input, game_memory *Memory, game_screen_buffer *ScreenBuffer)
@@ -96,6 +116,10 @@ void UpdateAndRender(game_input* Input, game_memory *Memory, game_screen_buffer 
         }
         Memory->IsInitialized = true;
     }
+    
+    GameState->Camera.Center = GameState->Camera.Center + V2(0.05, 0.05);
 
-    DrawMap(ScreenBuffer, GameState->CameraPosition, Tiles);
+    color FillColor = Black;
+    ClearScreenBuffer(ScreenBuffer, FillColor);
+    DrawMap(ScreenBuffer, &GameState->Camera, Tiles);
 }
