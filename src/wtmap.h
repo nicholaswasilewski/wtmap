@@ -1,5 +1,6 @@
 #if !defined(WTMAP__H)
 #include <stdint.h>
+#include "Vector2.h"
 
 typedef __int8 int8;
 typedef unsigned __int8 uint8;
@@ -63,11 +64,18 @@ typedef struct game_screen_buffer
 	int Pitch;
 	int BytesPerPixel;
 } game_screen_buffer;
-
+#define MAP_WIDTH 100
+#define MAP_HEIGHT 100
 typedef struct game_state
 {
+    int FloorNumber;
+    
+    //I really should put this
+    //somewhere else so I can do variably sized
+    //maps, but for now...
+    int Tiles[MAP_WIDTH*MAP_HEIGHT];
     //floor map, other state
-    //camera position
+    v2 CameraPosition;
     //player position
 } game_state;
 
