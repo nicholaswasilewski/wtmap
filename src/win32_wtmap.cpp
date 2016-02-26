@@ -152,6 +152,12 @@ LRESULT CALLBACK MainWindowCallback(HWND Window,
 }
 
 void
+Win32ProcessKeyboardMessage(game_button_state *ButtonState, bool DownState)
+{
+    ButtonState->Down = DownState;
+}
+
+void
 Win32ProcessPendingMessages(win32_state *State, game_controller *KeyboardController)
 {			
 	MSG Message;
@@ -163,7 +169,6 @@ Win32ProcessPendingMessages(win32_state *State, game_controller *KeyboardControl
 		}
 		switch(Message.message)
 		{
-/*
 			case WM_SYSKEYDOWN:
 			case WM_SYSKEYUP:
 			case WM_KEYDOWN:
@@ -240,7 +245,6 @@ Win32ProcessPendingMessages(win32_state *State, game_controller *KeyboardControl
 					}
 				}
 			} break;
-    */
 			default:
 			{
 				TranslateMessage(&Message);

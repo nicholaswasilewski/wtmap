@@ -19,7 +19,7 @@ typedef unsigned __int64 uint64;
 
 typedef struct game_button_state
 {
-    int Down;
+    bool Down;
 } game_button_state;
 
 typedef struct game_controller
@@ -33,10 +33,14 @@ typedef struct game_controller
             game_button_state MoveDown;
             game_button_state MoveLeft;
             game_button_state MoveRight;
+            game_button_state LeftShoulder;
+            game_button_state RightShoulder;
             game_button_state ActionUp;
             game_button_state ActionDown;
             game_button_state ActionLeft;
             game_button_state ActionRight;
+            game_button_state Back;
+            game_button_state Start;
         };
     };
 } game_controller;

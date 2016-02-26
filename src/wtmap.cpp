@@ -116,8 +116,26 @@ void UpdateAndRender(game_input* Input, game_memory *Memory, game_screen_buffer 
         }
         Memory->IsInitialized = true;
     }
-    
-    GameState->Camera.Center = GameState->Camera.Center + V2(0.05, 0.05);
+
+    float CameraMoveSpeed = 5.0f*Input->dt;
+    v2 CameraMove = V2(0,0);
+    if (Input->Keyboard.MoveUp.Down)
+    {
+        CameraMove.Y -= 1;
+    }
+    if (Input->Keyboard.MoveDown.Down)
+    {
+        CameraMove.Y += 1;
+    }
+    if (Input->Keyboard.MoveLeft.Down)
+    {
+        CameraMove.X -= 1;
+    }
+    if (Input->Keyboard.MoveRight.Down)
+    {
+        CameraMove.X += 1;
+    }
+    GameState->Camera.Center = GameState->Camera.Center + (CameraMove*CameraMoveSpeed);
 
     color FillColor = Black;
     ClearScreenBuffer(ScreenBuffer, FillColor);
