@@ -3,6 +3,9 @@
 
 #include <stdio.h>
 #include <windows.h>
+#include <io.h>
+#include <fcntl.h>
+
 #pragma comment(lib, "gdi32.lib")
 #pragma comment(lib, "user32.lib")
 
@@ -20,6 +23,10 @@ typedef struct win32_offscreen_buffer
 
 typedef struct win32_state
 {
+    bool ConsoleVisible;
+    HWND MainWindow;
+    HWND Console;
+    
     uint64 TotalSize;
     void* GameMemoryBlock;
 } win32_state;
@@ -38,6 +45,59 @@ LARGE_INTEGER GetCPUTime()
     QueryPerformanceCounter(&Res);
     return Res;
 }
+
+HWND CreateConsole()
+{
+    HWND Console;
+    long StandardOut;
+    FILE *fp;
+
+    AllocConsole();
+    freopen("CONOUT$", "w", stdout);
+
+    Console = FindWindowA("ConsoleWindowClass", 0);
+    
+    return Console;
+}
+
+void ShowConsole(win32_state* State, bool Show)
+{
+    if (!State->Console)
+    {
+        State->Console = CreateConsole();
+        RECT MainWindowRect;
+        GetWindowRect(State->MainWindow, &MainWindowRect);
+        RECT ConsoleRect;
+        GetWindowRect(State->Console, &ConsoleRect);
+        MoveWindow(State->Console,
+                   MainWindowRect.right,
+                   MainWindowRect.bottom,
+                   ConsoleRect.right - ConsoleRect.left,
+                   ConsoleRect.bottom - ConsoleRect.top,
+                   1);
+    }
+    
+    if (Show)
+    {
+        printf("Console Visible\n");
+    }
+    else
+    {
+        printf("Console Hidden\n");
+    }
+    
+    State->ConsoleVisible = Show;
+    ShowWindow(State->Console, Show);
+
+    SetActiveWindow(State->MainWindow);
+    SetFocus(State->MainWindow);
+}
+
+void ToggleConsole(win32_state* State)
+{
+    ShowConsole(State, !State->ConsoleVisible);
+}
+
 
 win32_window_dimension GetWindowDimension(HWND Window)
 {
@@ -67,7 +127,7 @@ Win32DisplayBufferInWindow(win32_offscreen_buffer *Buffer,
 {
     StretchDIBits(
         DeviceContext,
-        0,0,WindowWidth, WindowHeight,
+        0,0,Buffer->Width, Buffer->Height,
         0,0,Buffer->Width, Buffer->Height,
         Buffer->Memory,
         &Buffer->Info,
@@ -94,17 +154,9 @@ LRESULT CALLBACK MainWindowCallback(HWND Window,
         } break;	
         case WM_SETCURSOR:
         {
-            SetCursor(0);
-            /*
-            if (DEBUGGlobalShowCursor)
-            {		
-                Result = DefWindowProcA(Window, Message, WParam, LParam);
-            }
-            else
-            {
-                SetCursor(0);
-            }
-            */
+            Result = DefWindowProcA(Window, Message, WParam, LParam);
+            /*SetCursor(0)*/
+            
         } break;
         case WM_DESTROY:
         {
@@ -235,6 +287,11 @@ Win32ProcessPendingMessages(win32_state *State, game_controller *KeyboardControl
 						{
 							GlobalRunning = false;
 						}
+                        if (VKCode == VK_F12)
+                        {
+                            ToggleConsole(State);
+                        }
+                        
 						if((VKCode == VK_RETURN) && AltIsDown)
 						{
 							if (Message.hwnd)
@@ -260,6 +317,7 @@ int CALLBACK WinMain(
     LPSTR CommandLine,
     int ShowCode)
 {
+    
     win32_state State = {};
     LARGE_INTEGER PerfCountFreqRes;
     QueryPerformanceFrequency(&PerfCountFreqRes);
@@ -275,8 +333,8 @@ int CALLBACK WinMain(
             
     win32_offscreen_buffer* Buffer = &GlobalBackbuffer;
 
-    int ScreenWidth = 960;
-    int ScreenHeight = 540;
+    int ScreenWidth = 1080;
+    int ScreenHeight = 608;
 
     if(Buffer->Memory)
     {
@@ -320,6 +378,7 @@ int CALLBACK WinMain(
         0,
         Instance,
         0);
+    State.MainWindow = WindowHandle;
     if (!WindowHandle)
     {
         DWORD LastError = GetLastError();
@@ -403,6 +462,7 @@ int CALLBACK WinMain(
             double TargetActualDiff = 1000.0f*(TargetFrameSeconds - FrameSecondsElapsed);
             Sleep(TargetActualDiff);
         }
+        
         LastCounter = TimeNow;
         
         win32_window_dimension Dimension = GetWindowDimension(WindowHandle);

@@ -96,24 +96,29 @@ void ClearScreenBuffer(game_screen_buffer *ScreenBuffer, color FillColor)
                   FillColor.B);
 }
 
+void GenerateMap(int* Tiles, int MapWidth, int MapHeight)
+{
+    //generate map
+    for(int y = 1; y < MAP_HEIGHT-1; y++)
+    {
+        for(int x = 1; x < MAP_WIDTH-1; x++)
+        {
+            Tiles[y*MAP_WIDTH + x] = StoneFloor.ID;
+        }
+    }
+    for(int x = 0; x < MAP_WIDTH; x++)
+    {
+        Tiles[x] = Water.ID;
+    }
+}
+
 void UpdateAndRender(game_input* Input, game_memory *Memory, game_screen_buffer *ScreenBuffer)
 {
     game_state *GameState = (game_state *)Memory->PermanentStorage;
     int *Tiles = GameState->Tiles;
     if (!Memory->IsInitialized)
     {
-        //generate map
-        for(int y = 1; y < MAP_HEIGHT-1; y++)
-        {
-            for(int x = 1; x < MAP_WIDTH-1; x++)
-            {
-                Tiles[y*MAP_WIDTH + x] = StoneFloor.ID;
-            }
-        }
-        for(int x = 0; x < MAP_WIDTH; x++)
-        {
-            Tiles[x] = Water.ID;
-        }
+        GenerateMap(Tiles, MAP_WIDTH, MAP_HEIGHT);
         Memory->IsInitialized = true;
     }
 
