@@ -2,6 +2,7 @@
 #include "Color.h"
 #include "Tile.h"
 #include <Math.h>
+#include <stdlib.h>
 
 void DrawRectangle(game_screen_buffer* ScreenBuffer,
                    v2 Min,
@@ -112,6 +113,13 @@ void GenerateMap(int* Tiles, int MapWidth, int MapHeight)
     }
 }
 
+void ProcessConsoleInput(game_input* Input, game_memory* Memory, game_screen_buffer *ScreenBuffer, char* Words)
+{
+    int i = atoi(Words);
+    game_state* State = (game_state *)Memory->PermanentStorage;
+    State->CameraMoveSpeed = (float)i;
+}
+
 void UpdateAndRender(game_input* Input, game_memory *Memory, game_screen_buffer *ScreenBuffer)
 {
     game_state *GameState = (game_state *)Memory->PermanentStorage;
@@ -122,7 +130,7 @@ void UpdateAndRender(game_input* Input, game_memory *Memory, game_screen_buffer 
         Memory->IsInitialized = true;
     }
 
-    float CameraMoveSpeed = 5.0f*Input->dt;
+    float CameraMoveSpeed = GameState->CameraMoveSpeed*Input->dt;
     v2 CameraMove = V2(0,0);
     if (Input->Keyboard.MoveUp.Down)
     {

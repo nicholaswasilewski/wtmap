@@ -74,6 +74,7 @@ typedef struct game_screen_buffer
 typedef struct game_state
 {
     int FloorNumber;
+    float CameraMoveSpeed;
     
     //I really should put this
     //somewhere else so I can do variably sized

@@ -27,6 +27,7 @@ typedef struct win32_state
     HWND MainWindow;
     HWND Console;
     
+    
     uint64 TotalSize;
     void* GameMemoryBlock;
 } win32_state;
@@ -58,13 +59,45 @@ HWND CreateConsole()
     FILE *fp;
 
     AllocConsole();
+    freopen("CONIN$", "r", stdin);
     freopen("CONOUT$", "w", stdout);
-//    freopen("CONIN$", "r", stdin);
+    freopen("CONOUT$", "w", stderr);
 
     Console = FindConsole();
     ShowWindow(Console, 0);
     
     return Console;
+}
+
+
+bool NewInput;
+#define CONSOLE_INPUT_MAX 512
+char ConsoleInput[CONSOLE_INPUT_MAX];
+
+bool CheckConsoleInput(LPVOID OutBuffer) {
+    if (NewInput)
+    {
+        memcpy(OutBuffer, ConsoleInput, CONSOLE_INPUT_MAX);
+        memset(ConsoleInput, 0, CONSOLE_INPUT_MAX);
+        NewInput = false;
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+DWORD WINAPI Win32AsyncReadFromConsole(void* ThreadInput) {
+
+    HANDLE hConHandle = CreateFile("CONIN$", GENERIC_READ|GENERIC_WRITE,FILE_SHARE_READ, 0, OPEN_EXISTING, 0, 0);
+
+    DWORD CharsToRead = CONSOLE_INPUT_MAX;
+    DWORD CharsRead;
+    while(true) {
+        ReadConsole(hConHandle, &ConsoleInput, CharsToRead, &CharsRead, 0);
+        NewInput = true;
+    }
 }
 
 void ShowConsole(win32_state* State, bool Show)
@@ -77,7 +110,7 @@ void ShowConsole(win32_state* State, bool Show)
         RECT ConsoleRect;
         GetWindowRect(State->Console, &ConsoleRect);
         MoveWindow(State->Console,
-                   MainWindowRect.right,
+                   MainWindowRect.left,
                    MainWindowRect.bottom,
                    ConsoleRect.right - ConsoleRect.left,
                    ConsoleRect.bottom - ConsoleRect.top,
@@ -98,7 +131,6 @@ void ShowConsole(win32_state* State, bool Show)
     ShowWindow(State->Console, Show);
 
     SetActiveWindow(State->MainWindow);
-    SetFocus(State->MainWindow);
 }
 
 void ToggleConsole(win32_state* State)
@@ -327,7 +359,14 @@ int CALLBACK WinMain(
 {
     win32_state State = {};
     HWND Console = CreateConsole();
-    ShowWindow(Console, 0);
+
+    DWORD ConsoleReadThreadID;
+    CreateThread(NULL,
+                 0,
+                 Win32AsyncReadFromConsole,
+                 0,
+                 0,
+                 &ConsoleReadThreadID);
     
     LARGE_INTEGER PerfCountFreqRes;
     QueryPerformanceFrequency(&PerfCountFreqRes);
@@ -389,7 +428,6 @@ int CALLBACK WinMain(
         Instance,
         0);
     State.MainWindow = WindowHandle;
-    ShowConsole(&State, false);
     SetActiveWindow(State.MainWindow);
     
     if (!WindowHandle)
@@ -463,8 +501,12 @@ int CALLBACK WinMain(
         Buffer.Pitch = GlobalBackbuffer.Pitch;
         Buffer.BytesPerPixel = GlobalBackbuffer.BytesPerPixel;
 
+        char ConsoleBuffer[512];
+        if (CheckConsoleInput(&ConsoleBuffer))
+        {
+            ProcessConsoleInput(NewInput, &GameMemory, &Buffer, ConsoleBuffer);
+        }
         UpdateAndRender(NewInput, &GameMemory, &Buffer);
-        
         //post work
         LARGE_INTEGER TimeNow = GetCPUTime();
         float FrameSecondsElapsed = Win32GetSecondsElapsed(LastCounter, TimeNow);
