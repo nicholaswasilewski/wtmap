@@ -1,1 +1,4 @@
-an_icon ICON icon.ico
+large ICON icon_256.ico
+medium ICON icon_128.ico
+small ICON icon_64.ico
+x_small ICON icon_32.ico

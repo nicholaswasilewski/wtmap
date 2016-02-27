@@ -15,20 +15,20 @@ typedef struct tilesData {
             tileData StoneWall;
             tileData Water;
         };
-        tileData *Values;
+        tileData Values[4];
     };
 } tilesData;
 
 tileData Blank = {0, 0, 0, 0, 0};
 tileData StoneFloor = {1, 127, 127, 127, 255};
-tileData StoneWall = {2, 255, 255, 255, 255};
+tileData StoneWall = {2, 64, 64, 64, 255};
 tileData Water = {3, 100, 100, 255, 255};
 
-tileData TileData[] = {
-    {0, {0, 0, 0, 0}},
-    {1, { 127, 127, 127, 255 } },
-    {2, { 255, 255, 255, 255 } },
-    Water
+tilesData TileTypes= {
+    Blank = {0,0,0,0,0},
+    StoneFloor = {1, 127, 127, 127, 255},
+    StoneWall = StoneWall,
+    Water = {3, 100, 100, 255, 255 }
 };
 
 #define TILE_H

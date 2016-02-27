@@ -1,6 +1,7 @@
 #include "wtmap.h"
 #include "Color.h"
 #include "Tile.h"
+#include "MapGeneration.cpp"
 #include <Math.h>
 #include <stdlib.h>
 
@@ -80,7 +81,7 @@ void DrawMap(game_screen_buffer* ScreenBuffer, camera* Camera, int* Tiles)
         int* Tile = Row;
         for(int x = 0; x < MAP_WIDTH; x++)
         {   
-            DrawTile(ScreenBuffer, Camera, TileData[*Tile].Color, V2(x, y));
+            DrawTile(ScreenBuffer, Camera, TileTypes.Values[*Tile].Color, V2(x, y));
             Tile += 1;
         }
         Row += MAP_WIDTH;
@@ -97,22 +98,6 @@ void ClearScreenBuffer(game_screen_buffer *ScreenBuffer, color FillColor)
                   FillColor.B);
 }
 
-void GenerateMap(int* Tiles, int MapWidth, int MapHeight)
-{
-    //generate map
-    for(int y = 1; y < MAP_HEIGHT-1; y++)
-    {
-        for(int x = 1; x < MAP_WIDTH-1; x++)
-        {
-            Tiles[y*MAP_WIDTH + x] = StoneFloor.ID;
-        }
-    }
-    for(int x = 0; x < MAP_WIDTH; x++)
-    {
-        Tiles[x] = Water.ID;
-    }
-}
-
 void ProcessConsoleInput(game_input* Input, game_memory* Memory, game_screen_buffer *ScreenBuffer, char* Words)
 {
     int i = atoi(Words);
@@ -126,6 +111,7 @@ void UpdateAndRender(game_input* Input, game_memory *Memory, game_screen_buffer 
     int *Tiles = GameState->Tiles;
     if (!Memory->IsInitialized)
     {
+        GameState->CameraMoveSpeed = 5.0f;
         GenerateMap(Tiles, MAP_WIDTH, MAP_HEIGHT);
         Memory->IsInitialized = true;
     }
