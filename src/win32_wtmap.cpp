@@ -46,6 +46,11 @@ LARGE_INTEGER GetCPUTime()
     return Res;
 }
 
+HWND FindConsole()
+{
+    return FindWindowA("ConsoleWindowClass", 0);
+}
+
 HWND CreateConsole()
 {
     HWND Console;
@@ -54,8 +59,10 @@ HWND CreateConsole()
 
     AllocConsole();
     freopen("CONOUT$", "w", stdout);
+//    freopen("CONIN$", "r", stdin);
 
-    Console = FindWindowA("ConsoleWindowClass", 0);
+    Console = FindConsole();
+    ShowWindow(Console, 0);
     
     return Console;
 }
@@ -64,7 +71,7 @@ void ShowConsole(win32_state* State, bool Show)
 {
     if (!State->Console)
     {
-        State->Console = CreateConsole();
+        State->Console = FindConsole();
         RECT MainWindowRect;
         GetWindowRect(State->MainWindow, &MainWindowRect);
         RECT ConsoleRect;
@@ -75,6 +82,7 @@ void ShowConsole(win32_state* State, bool Show)
                    ConsoleRect.right - ConsoleRect.left,
                    ConsoleRect.bottom - ConsoleRect.top,
                    1);
+
     }
     
     if (Show)
@@ -317,8 +325,10 @@ int CALLBACK WinMain(
     LPSTR CommandLine,
     int ShowCode)
 {
-    
     win32_state State = {};
+    HWND Console = CreateConsole();
+    ShowWindow(Console, 0);
+    
     LARGE_INTEGER PerfCountFreqRes;
     QueryPerformanceFrequency(&PerfCountFreqRes);
     PerfCountFrequency = PerfCountFreqRes.QuadPart;
@@ -379,6 +389,9 @@ int CALLBACK WinMain(
         Instance,
         0);
     State.MainWindow = WindowHandle;
+    ShowConsole(&State, false);
+    SetActiveWindow(State.MainWindow);
+    
     if (!WindowHandle)
     {
         DWORD LastError = GetLastError();
@@ -443,7 +456,6 @@ int CALLBACK WinMain(
 
         Win32ProcessPendingMessages(&State,  NewKeyboard);
 
-        //work
         game_screen_buffer Buffer = {};
         Buffer.Memory = GlobalBackbuffer.Memory;
         Buffer.Width = GlobalBackbuffer.Width;
