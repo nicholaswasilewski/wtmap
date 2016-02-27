@@ -69,7 +69,7 @@ HWND CreateConsole()
     return Console;
 }
 
-
+char* ConsoleInputMutexName = "ConsoleInputMutex";
 bool NewInput;
 #define CONSOLE_INPUT_MAX 512
 char ConsoleInput[CONSOLE_INPUT_MAX];
@@ -77,9 +77,11 @@ char ConsoleInput[CONSOLE_INPUT_MAX];
 bool CheckConsoleInput(LPVOID OutBuffer) {
     if (NewInput)
     {
+        HANDLE mut = OpenMutex(MUTEX_ALL_ACCESS, 0, ConsoleInputMutexName);
         memcpy(OutBuffer, ConsoleInput, CONSOLE_INPUT_MAX);
         memset(ConsoleInput, 0, CONSOLE_INPUT_MAX);
         NewInput = false;
+        ReleaseMutex(mut);
         return true;
     }
     else
@@ -95,8 +97,12 @@ DWORD WINAPI Win32AsyncReadFromConsole(void* ThreadInput) {
     DWORD CharsToRead = CONSOLE_INPUT_MAX;
     DWORD CharsRead;
     while(true) {
-        ReadConsole(hConHandle, &ConsoleInput, CharsToRead, &CharsRead, 0);
+        char ConsoleInputTempBuffer[CONSOLE_INPUT_MAX];
+        ReadConsole(hConHandle, &ConsoleInputTempBuffer, CharsToRead, &CharsRead, 0);
+        HANDLE mut = OpenMutex(MUTEX_ALL_ACCESS, 0, ConsoleInputMutexName);
+        memcpy(ConsoleInput, ConsoleInputTempBuffer, CharsRead);
         NewInput = true;
+        ReleaseMutex(mut);
     }
 }
 
@@ -359,6 +365,7 @@ int CALLBACK WinMain(
 {
     win32_state State = {};
     HWND Console = CreateConsole();
+    CreateMutex(0, 0, ConsoleInputMutexName);
 
     DWORD ConsoleReadThreadID;
     CreateThread(NULL,
