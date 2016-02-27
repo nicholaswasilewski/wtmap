@@ -324,18 +324,10 @@ Win32ProcessPendingMessages(win32_state *State, game_controller *KeyboardControl
 						{
 							GlobalRunning = false;
 						}
-                        if (VKCode == VK_OEM_3)
+                        if (VKCode == VK_F12)
                         {
                             ToggleConsole(State);
                         }
-                        
-						if((VKCode == VK_RETURN) && AltIsDown)
-						{
-							if (Message.hwnd)
-							{
-								//Win32ToggleFullScreen(Message.hwnd);
-							}
-						}
 					}
 				}
 			} break;

@@ -4,6 +4,8 @@
 #include "MapGeneration.cpp"
 #include <Math.h>
 #include <stdlib.h>
+#include <string.h>
+#include <time.h>
 
 void DrawRectangle(game_screen_buffer* ScreenBuffer,
                    v2 Min,
@@ -59,17 +61,15 @@ void DrawRectangle(game_screen_buffer* ScreenBuffer,
 //world size = 1 tile = 1 meter (or something like that)
 void DrawTile(game_screen_buffer* ScreenBuffer, camera* Camera, color TileColor, v2 TilePosition)
 {
-    int TilePixels = 16;
-
     v2 TileCenterPosition = TilePosition + V2(0.5f, 0.5f);
     v2 TileCenterScreenPoint = WorldPointToScreenPoint(Camera,
-                                                       TilePixels,
                                                        V2(ScreenBuffer->Width/2, ScreenBuffer->Height/2),
                                                        TileCenterPosition);
 
+    int TilePixels = Camera->WorldUnitsToPixels;
     v2 ScreenTileSize = V2(0.5f*TilePixels, 0.5f*TilePixels);
-    v2 Min = (TileCenterScreenPoint - ScreenTileSize) + V2(1,1);
-    v2 Max = Min + V2(TilePixels-1, TilePixels-1);
+    v2 Min = TileCenterScreenPoint - ScreenTileSize + V2(1, 1);
+    v2 Max = TileCenterScreenPoint + ScreenTileSize - V2(1, 1);
     DrawRectangle(ScreenBuffer, Min, Max, TileColor.R, TileColor.G, TileColor.B);
 }
 
@@ -100,6 +100,24 @@ void ClearScreenBuffer(game_screen_buffer *ScreenBuffer, color FillColor)
 
 void ProcessConsoleInput(game_input* Input, game_memory* Memory, game_screen_buffer *ScreenBuffer, char* Words)
 {
+    char* commandString = strtok(Words, " ");
+    if (strcmp(Words, "genmap"))
+    {
+        char* paramString = strtok(0, " ");
+        int Seed = 0;
+        if (paramString)
+        {
+            Seed = atoi(paramString);
+        }
+        else
+        {
+            Seed = time(0);
+        }
+        
+        game_state *GameState = (game_state *)Memory->PermanentStorage;
+        int *Tiles = GameState->Tiles;
+        GenerateMap(Tiles, MAP_WIDTH, MAP_HEIGHT, Seed);
+    }
     int i = atoi(Words);
     game_state* State = (game_state *)Memory->PermanentStorage;
     State->CameraMoveSpeed = (float)i;
@@ -111,8 +129,9 @@ void UpdateAndRender(game_input* Input, game_memory *Memory, game_screen_buffer 
     int *Tiles = GameState->Tiles;
     if (!Memory->IsInitialized)
     {
+        GameState->Camera.WorldUnitsToPixels = 8;
         GameState->CameraMoveSpeed = 5.0f;
-        GenerateMap(Tiles, MAP_WIDTH, MAP_HEIGHT);
+        GenerateMap(Tiles, MAP_WIDTH, MAP_HEIGHT, time(0));
         Memory->IsInitialized = true;
     }
 
