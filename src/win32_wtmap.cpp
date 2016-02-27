@@ -124,15 +124,6 @@ void ShowConsole(win32_state* State, bool Show)
 
     }
     
-    if (Show)
-    {
-        printf("Console Visible\n");
-    }
-    else
-    {
-        printf("Console Hidden\n");
-    }
-    
     State->ConsoleVisible = Show;
     ShowWindow(State->Console, Show);
 
@@ -333,7 +324,7 @@ Win32ProcessPendingMessages(win32_state *State, game_controller *KeyboardControl
 						{
 							GlobalRunning = false;
 						}
-                        if (VKCode == VK_F12)
+                        if (VKCode == VK_OEM_3)
                         {
                             ToggleConsole(State);
                         }
