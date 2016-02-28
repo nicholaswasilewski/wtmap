@@ -18,8 +18,12 @@ typedef struct tilesData {
             tileData Water;
             tileData Entrance;
             tileData Exit;
+            tileData Door;
+            tileData Blood;
+            tileData Slime;
+            tileData Gold;
         };
-        tileData Values[4];
+        tileData Values[10];
     };
 } tilesData;
 
@@ -29,14 +33,22 @@ tileData StoneWall = {2, 64, 64, 64, 255};
 tileData Water = {3, 100, 100, 255, 255};
 tileData Entrance = {4, 0, 255, 0, 255};
 tileData Exit = {5, 255, 0, 0, 255};
+tileData Door = {6, 153, 102, 51, 255};
+tileData Blood = {7, 230, 0, 0, 255};
+tileData Slime = {8, 0, 153, 0, 255};
+tileData Gold = {9, 255, 204, 0, 255};
 
 tilesData TileTypes = {
-Blank,
-StoneFloor,
-StoneWall,
-Water,
-Entrance,
-Exit
+    Blank,
+    StoneFloor,
+    StoneWall,
+    Water,
+    Entrance,
+    Exit,
+    Door,
+    Blood,
+    Slime,
+    Gold
 };
 
 

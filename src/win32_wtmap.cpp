@@ -100,6 +100,9 @@ DWORD WINAPI Win32AsyncReadFromConsole(void* ThreadInput) {
         char ConsoleInputTempBuffer[CONSOLE_INPUT_MAX];
         ReadConsole(hConHandle, &ConsoleInputTempBuffer, CharsToRead, &CharsRead, 0);
         HANDLE mut = OpenMutex(MUTEX_ALL_ACCESS, 0, ConsoleInputMutexName);
+
+        //remove endline because that's how I signal I'm done entering things? let's check it out
+        ConsoleInputTempBuffer[CharsRead-2] = '\0';
         memcpy(ConsoleInput, ConsoleInputTempBuffer, CharsRead);
         NewInput = true;
         ReleaseMutex(mut);
@@ -133,6 +136,12 @@ void ShowConsole(win32_state* State, bool Show)
 void ToggleConsole(win32_state* State)
 {
     ShowConsole(State, !State->ConsoleVisible);
+}
+
+void FocusConsole(win32_state* State)
+{
+    SetActiveWindow(State->Console);
+    SetFocus(State->Console);
 }
 
 
@@ -308,7 +317,7 @@ Win32ProcessPendingMessages(win32_state *State, game_controller *KeyboardControl
 					else if(VKCode == VK_RIGHT)
 					{
 						Win32ProcessKeyboardMessage(&KeyboardController->ActionRight, IsDown);
-					}
+					}\
 					else if(VKCode == VK_ESCAPE)
 					{
 						Win32ProcessKeyboardMessage(&KeyboardController->Back, IsDown);
@@ -324,9 +333,15 @@ Win32ProcessPendingMessages(win32_state *State, game_controller *KeyboardControl
 						{
 							GlobalRunning = false;
 						}
+                        
                         if (VKCode == VK_F12)
                         {
                             ToggleConsole(State);
+                            if (AltIsDown)
+                            {
+                                //TODO: fix this, it doesn't do anything
+                                FocusConsole(State);
+                            }
                         }
 					}
 				}
@@ -494,7 +509,14 @@ int CALLBACK WinMain(
         char ConsoleBuffer[512];
         if (CheckConsoleInput(&ConsoleBuffer))
         {
-            ProcessConsoleInput(NewInput, &GameMemory, &Buffer, ConsoleBuffer);
+            if (strcmp(ConsoleBuffer, "close") == 0)
+            {
+                ToggleConsole(&State);
+            }
+            else
+            {
+                ProcessConsoleInput(NewInput, &GameMemory, &Buffer, ConsoleBuffer);
+            }
         }
         UpdateAndRender(NewInput, &GameMemory, &Buffer);
         //post work

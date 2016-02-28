@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
-
+#include <stdio.h>
 void DrawRectangle(game_screen_buffer* ScreenBuffer,
                    v2 Min,
                    v2 Max,
@@ -101,7 +101,8 @@ void ClearScreenBuffer(game_screen_buffer *ScreenBuffer, color FillColor)
 void ProcessConsoleInput(game_input* Input, game_memory* Memory, game_screen_buffer *ScreenBuffer, char* Words)
 {
     char* commandString = strtok(Words, " ");
-    if (strcmp(commandString, "genmap"))
+    printf("%s\n", commandString);
+    if (strcmp(commandString, "genmap") == 0)
     {
         char* paramString = strtok(0, " ");
         int Seed = 0;
@@ -118,7 +119,7 @@ void ProcessConsoleInput(game_input* Input, game_memory* Memory, game_screen_buf
         int *Tiles = GameState->Tiles;
         GenerateMap(Tiles, MAP_WIDTH, MAP_HEIGHT, Seed);
     }
-    else if (strcmp(commandString, "camspeed"))
+    else if (strcmp(commandString, "camspeed") == 0)
     {
         char* paramString = strtok(0, " ");
         if (paramString)
@@ -126,6 +127,17 @@ void ProcessConsoleInput(game_input* Input, game_memory* Memory, game_screen_buf
             int i = atoi(paramString);
             game_state* State = (game_state *)Memory->PermanentStorage;
             State->CameraMoveSpeed = (float)i;
+        }
+    }
+    else if (strcmp(commandString, "camzoom") == 0)
+    {
+        char* paramString = strtok(0, " ");
+        if (paramString)
+        {
+            int i = atoi(paramString);
+            game_state* State = (game_state *)Memory->PermanentStorage;
+            if (i >= 4)
+                State->Camera.WorldUnitsToPixels = i;
         }
     }
 }
@@ -136,7 +148,7 @@ void UpdateAndRender(game_input* Input, game_memory *Memory, game_screen_buffer 
     int *Tiles = GameState->Tiles;
     if (!Memory->IsInitialized)
     {
-        GameState->Camera.WorldUnitsToPixels = 8;
+        GameState->Camera.WorldUnitsToPixels = 4;
         GameState->CameraMoveSpeed = 10.0f;
         GenerateMap(Tiles, MAP_WIDTH, MAP_HEIGHT, time(0));
         GameState->Camera.Center = V2(MAP_WIDTH/2, MAP_HEIGHT/2);

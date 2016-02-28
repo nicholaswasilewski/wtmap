@@ -4,7 +4,7 @@
 
 typedef struct Camera {
     v2 Center;
-    float WorldUnitsToPixels = 16;
+    float WorldUnitsToPixels;
 } camera;
 
 v2 WorldPointToScreenPoint(camera* Camera, v2 ScreenCenter, v2 WorldPoint)
