@@ -3,9 +3,7 @@
 
 
 typedef struct Camera {
-    //should probably be setting apparent sizes or something here so we can zoom in and out
     v2 Center;
-    //world units to pixel
     float WorldUnitsToPixels = 16;
 } camera;
 

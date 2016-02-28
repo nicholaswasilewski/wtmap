@@ -16,6 +16,9 @@ typedef unsigned __int64 uint64;
 #define Megabytes(Val) (Kilobytes(Val)*1024LL)
 #define Gigabytes(Val) (Megabytes(Val)*1024LL)
 
+#define Assert(Expression) \
+    if(!(Expression)) (*(int*)0 = 0)
+
 
 typedef struct game_button_state
 {
@@ -60,6 +63,12 @@ typedef struct game_memory
     int64 TransientStorageSize;
     void* TransientStorage;
 } game_memory;
+
+typedef struct {
+    int* Tiles;
+    int Width;
+    int Height;
+} tileMap;
 
 typedef struct game_screen_buffer
 {

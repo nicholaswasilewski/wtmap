@@ -101,7 +101,7 @@ void ClearScreenBuffer(game_screen_buffer *ScreenBuffer, color FillColor)
 void ProcessConsoleInput(game_input* Input, game_memory* Memory, game_screen_buffer *ScreenBuffer, char* Words)
 {
     char* commandString = strtok(Words, " ");
-    if (strcmp(Words, "genmap"))
+    if (strcmp(commandString, "genmap"))
     {
         char* paramString = strtok(0, " ");
         int Seed = 0;
@@ -118,9 +118,16 @@ void ProcessConsoleInput(game_input* Input, game_memory* Memory, game_screen_buf
         int *Tiles = GameState->Tiles;
         GenerateMap(Tiles, MAP_WIDTH, MAP_HEIGHT, Seed);
     }
-    int i = atoi(Words);
-    game_state* State = (game_state *)Memory->PermanentStorage;
-    State->CameraMoveSpeed = (float)i;
+    else if (strcmp(commandString, "camspeed"))
+    {
+        char* paramString = strtok(0, " ");
+        if (paramString)
+        {
+            int i = atoi(paramString);
+            game_state* State = (game_state *)Memory->PermanentStorage;
+            State->CameraMoveSpeed = (float)i;
+        }
+    }
 }
 
 void UpdateAndRender(game_input* Input, game_memory *Memory, game_screen_buffer *ScreenBuffer)
@@ -130,8 +137,9 @@ void UpdateAndRender(game_input* Input, game_memory *Memory, game_screen_buffer 
     if (!Memory->IsInitialized)
     {
         GameState->Camera.WorldUnitsToPixels = 8;
-        GameState->CameraMoveSpeed = 5.0f;
+        GameState->CameraMoveSpeed = 10.0f;
         GenerateMap(Tiles, MAP_WIDTH, MAP_HEIGHT, time(0));
+        GameState->Camera.Center = V2(MAP_WIDTH/2, MAP_HEIGHT/2);
         Memory->IsInitialized = true;
     }
 
