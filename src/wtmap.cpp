@@ -100,44 +100,46 @@ void ClearScreenBuffer(game_screen_buffer *ScreenBuffer, color FillColor)
 
 void ProcessConsoleInput(game_input* Input, game_memory* Memory, game_screen_buffer *ScreenBuffer, char* Words)
 {
-    char* commandString = strtok(Words, " ");
-    printf("%s\n", commandString);
-    if (strcmp(commandString, "genmap") == 0)
+	if (strlen(Words) > 0)
     {
-        char* paramString = strtok(0, " ");
-        int Seed = 0;
-        if (paramString)
+        char* commandString = strtok(Words, " ");
+        if (strcmp(commandString, "genmap") == 0)
         {
-            Seed = atoi(paramString);
+            char* paramString = strtok(0, " ");
+            int Seed = 0;
+            if (paramString)
+            {
+                Seed = atoi(paramString);
+            }
+            else
+            {
+                Seed = time(0);
+            }
+            
+            game_state *GameState = (game_state *)Memory->PermanentStorage;
+            int *Tiles = GameState->Tiles;
+            GenerateMap(Tiles, MAP_WIDTH, MAP_HEIGHT, Seed);
         }
-        else
+        else if (strcmp(commandString, "camspeed") == 0)
         {
-            Seed = time(0);
+            char* paramString = strtok(0, " ");
+            if (paramString)
+            {
+                int i = atoi(paramString);
+                game_state* State = (game_state *)Memory->PermanentStorage;
+                State->CameraMoveSpeed = (float)i;
+            }
         }
-        
-        game_state *GameState = (game_state *)Memory->PermanentStorage;
-        int *Tiles = GameState->Tiles;
-        GenerateMap(Tiles, MAP_WIDTH, MAP_HEIGHT, Seed);
-    }
-    else if (strcmp(commandString, "camspeed") == 0)
-    {
-        char* paramString = strtok(0, " ");
-        if (paramString)
+        else if (strcmp(commandString, "camzoom") == 0)
         {
-            int i = atoi(paramString);
-            game_state* State = (game_state *)Memory->PermanentStorage;
-            State->CameraMoveSpeed = (float)i;
-        }
-    }
-    else if (strcmp(commandString, "camzoom") == 0)
-    {
-        char* paramString = strtok(0, " ");
-        if (paramString)
-        {
-            int i = atoi(paramString);
-            game_state* State = (game_state *)Memory->PermanentStorage;
-            if (i >= 4)
-                State->Camera.WorldUnitsToPixels = i;
+            char* paramString = strtok(0, " ");
+            if (paramString)
+            {
+                int i = atoi(paramString);
+                game_state* State = (game_state *)Memory->PermanentStorage;
+                if (i >= 4)
+                    State->Camera.WorldUnitsToPixels = i;
+            }
         }
     }
 }
