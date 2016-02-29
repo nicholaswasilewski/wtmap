@@ -123,7 +123,7 @@ void ProcessConsoleInput(game_input* Input, game_memory* Memory, game_screen_buf
             
             game_state *GameState = (game_state *)Memory->PermanentStorage;
             int *Tiles = GameState->Tiles;
-            GenerateMap(Tiles, MAP_WIDTH, MAP_HEIGHT, Seed);
+            GenerateMap(GameState, Tiles, MAP_WIDTH, MAP_HEIGHT, Seed);
         }
         else if (strcmp(commandString, "camspeed") == 0)
         {
@@ -157,7 +157,7 @@ void UpdateAndRender(game_input* Input, game_memory *Memory, game_screen_buffer 
     {
         GameState->Camera.WorldUnitsToPixels = 4;
         GameState->CameraMoveSpeed = 10.0f;
-        GenerateMap(Tiles, MAP_WIDTH, MAP_HEIGHT, time(0));
+        GenerateMap(GameState, Tiles, MAP_WIDTH, MAP_HEIGHT, time(0));
         GameState->Camera.Center = V2(MAP_WIDTH/2, MAP_HEIGHT/2);
         Memory->IsInitialized = true;
     }

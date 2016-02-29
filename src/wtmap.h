@@ -84,6 +84,7 @@ typedef struct game_screen_buffer
 	int Pitch;
 	int BytesPerPixel;
 } game_screen_buffer;
+
 #define MAP_WIDTH 100
 #define MAP_HEIGHT 100
 typedef struct game_state
