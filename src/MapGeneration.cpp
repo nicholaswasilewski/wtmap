@@ -53,17 +53,31 @@ int SampleTile(tileMap* TileMap, v2 TilePosition)
         return TileMap->Tiles[(int)(TilePosition.X + TilePosition.Y*TileMap->Width)];
     }
 }
-//map generation parameters
-int MinHallLength = 0;
-int MaxHallLength = 8;
-    
-int MinRoomDimensions = 5;
-int MaxRoomDimensions = 8;
 
 typedef struct{
     v2 ULPosition;
     v2 Dimensions;
 } region;
+
+int CheckRegion(tileMap* TileMap, v2 ULPosition, int RoomWidth, int RoomHeight)
+{
+    int WidthOverflow = (ULPosition.X + RoomWidth) - (TileMap->Width-1);
+    if (WidthOverflow > 0) RoomWidth -= WidthOverflow;
+    int HeightOverflow = (ULPosition.Y + RoomHeight) - (TileMap->Height-1);
+    if (HeightOverflow > 0) RoomHeight -= HeightOverflow;
+    for(int Y = ULPosition.Y; Y < ULPosition.Y+RoomHeight; Y++)
+    {
+        for(int X = ULPosition.X; X < ULPosition.X+RoomWidth; X++)
+        {
+            int TileType = SampleTile(TileMap, V2(X,Y));
+            if (TileType != 0)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
 
 //this is more like set region than make room
 region MakeRegion(tileMap* TileMap, v2 ULPosition, int RoomWidth, int RoomHeight)
@@ -75,19 +89,9 @@ region MakeRegion(tileMap* TileMap, v2 ULPosition, int RoomWidth, int RoomHeight
     int HeightOverflow = (ULPosition.Y + RoomHeight) - (TileMap->Height-1);
     if (HeightOverflow > 0) RoomHeight -= HeightOverflow;
 
-    //check region
-
-    
-    for(int Y = ULPosition.Y; Y < ULPosition.Y+RoomHeight; Y++)
+    if (!CheckRegion(TileMap, ULPosition, RoomWidth, RoomHeight))
     {
-        for(int X = ULPosition.X; X < ULPosition.X+RoomWidth; X++)
-        {
-            int TileType = SampleTile(TileMap, V2(X,Y));
-            if (TileType != 0)
-            {
-                return CreatedRoom;
-            }
-        }
+        return CreatedRoom;
     }
     
     for(int y = ULPosition.Y; y < ULPosition.Y+RoomHeight && y < TileMap->Height; y++)
@@ -102,107 +106,102 @@ region MakeRegion(tileMap* TileMap, v2 ULPosition, int RoomWidth, int RoomHeight
     return CreatedRoom;
 }
 
+//map generation parameters
+int MinHallLength = 0;
+int MaxHallLength = 8;
+    
+int MinRoomDimensions = 5;
+int MaxRoomDimensions = 8;
+
+region LastRoomGenerated;
 void MakeRoom(int RoomsToCreate, tileMap* TileMap, v2 ULPosition, v2 Dimensions)
 {
-    if(true)
-        //if (RoomsToCreate != 0)
-    {
-        region NewRoom = MakeRegion(TileMap,
-                                    ULPosition,
-                                    Dimensions.X,
-                                    Dimensions.Y);
-
-        if (Dimensions.X != NewRoom.Dimensions.X ||
-            Dimensions.Y != NewRoom.Dimensions.Y)
-            return;
-        //if (NewRoom.Dimensions.X == 0 ||
-        //  NewRoom.Dimensions.Y == 0)
-        //  return;
-        
-        //figure out where to go next;
-        bool GoDirections[4] = {1,1,1,1};
-        //bool GoDirections[4] = {RandBool(),RandBool(),RandBool(),RandBool()};
-        if (GoDirections[0]) //u
-        {
-            v2 DoorPosition = NewRoom.ULPosition + V2((int)NewRoom.Dimensions.X/2,
-                                                      0);
-
-            //making the hall
-            int HallLength = Rand(MinHallLength, MaxHallLength);
-            region Hallway = MakeRegion(TileMap,
-                                        DoorPosition - V2(0,HallLength),
-                                        1,
-                                        HallLength);
-            
-            v2 NextRoomDims = V2(Rand(MinRoomDimensions,
-                                      MaxRoomDimensions),
-                                 Rand(MinRoomDimensions,
-                                      MaxRoomDimensions));
-            v2 NextRoomUL = V2((int)(Hallway.ULPosition.X - NextRoomDims.X/2),
-                               (int)(Hallway.ULPosition.Y - NextRoomDims.Y));
-            
-            MakeRoom(RoomsToCreate-1, TileMap, NextRoomUL, NextRoomDims);
-        }
-        if (GoDirections[1]) //d
-        {
-            v2 DoorPosition = NewRoom.ULPosition + V2((int)NewRoom.Dimensions.X/2,
-                                                      NewRoom.Dimensions.Y-1);
-
-            int HallLength = Rand(MinHallLength, MaxHallLength);
-            region Hallway = MakeRegion(TileMap,
-                                        DoorPosition + V2(0,1),
-                                        1,
-                                        HallLength);
-            v2 NextRoomDims = V2(Rand(MinRoomDimensions,
-                                      MaxRoomDimensions),
-                                 Rand(MinRoomDimensions,
-                                      MaxRoomDimensions));
-            v2 NextRoomUL = V2((int)(Hallway.ULPosition.X - NextRoomDims.X/2),
-                               (int)(Hallway.ULPosition.Y+Hallway.Dimensions.Y));
-            MakeRoom(RoomsToCreate-1, TileMap, NextRoomUL, NextRoomDims);
-        }
-        if (GoDirections[2]) //l 
-        {
-            v2 DoorPosition;
-            DoorPosition = NewRoom.ULPosition + V2(0,
-                                                   (int)NewRoom.Dimensions.Y/2);
-
-            int HallLength = Rand(MinHallLength, MaxHallLength);
-            region Hallway = MakeRegion(TileMap,
-                                        DoorPosition - V2(HallLength, 0),
-                                        HallLength,
-                                        1);
-            v2 NextRoomDims = V2(Rand(MinRoomDimensions,
-                                      MaxRoomDimensions),
-                                 Rand(MinRoomDimensions,
-                                      MaxRoomDimensions));
-            v2 NextRoomUL = V2((int)(Hallway.ULPosition.X - NextRoomDims.X),
-                               (int)(Hallway.ULPosition.Y - NextRoomDims.Y/2));
-            MakeRoom(RoomsToCreate-1, TileMap, NextRoomUL, NextRoomDims);
-        }
-        if (GoDirections[3]) //r
-        {
-            v2 DoorPosition;
-            DoorPosition = NewRoom.ULPosition + V2(NewRoom.Dimensions.X-1,
-                                                   (int)NewRoom.Dimensions.Y/2);
-
-            int HallLength = Rand(0, MaxHallLength);
-            region Hallway = MakeRegion(TileMap,
-                                        DoorPosition + V2(1, 0),
-                                        HallLength,
-                                        1);
-            v2 NextRoomDims = V2(Rand(MinRoomDimensions,
-                                      MaxRoomDimensions),
-                                 Rand(MinRoomDimensions,
-                                      MaxRoomDimensions));
-            v2 NextRoomUL = V2((int)(Hallway.ULPosition.X),
-                               (int)(Hallway.ULPosition.Y - NextRoomDims.Y/2));
-            MakeRoom(RoomsToCreate-1, TileMap, NextRoomUL, NextRoomDims);
-        }
-    }
-    else
-    {
+    region NewRoom = MakeRegion(TileMap,
+                                ULPosition,
+                                Dimensions.X,
+                                Dimensions.Y);
+    if (Dimensions.X != NewRoom.Dimensions.X ||
+        Dimensions.Y != NewRoom.Dimensions.Y)
         return;
+    LastRoomGenerated = NewRoom;
+    
+    bool GoDirections[4] = {1,1,1,1};//I'm sure this'll get optimized out by the compiler...
+    if (GoDirections[0]) //u
+    {
+        v2 DoorPosition = NewRoom.ULPosition + V2((int)NewRoom.Dimensions.X/2,
+                                                  0);
+        
+        //making the hall
+        int HallLength = Rand(MinHallLength, MaxHallLength);
+        region Hallway = MakeRegion(TileMap,
+                                    DoorPosition - V2(0,HallLength),
+                                    1,
+                                    HallLength);
+        
+        v2 NextRoomDims = V2(Rand(MinRoomDimensions,
+                                  MaxRoomDimensions),
+                             Rand(MinRoomDimensions,
+                                  MaxRoomDimensions));
+        v2 NextRoomUL = V2((int)(Hallway.ULPosition.X - NextRoomDims.X/2),
+                           (int)(Hallway.ULPosition.Y - NextRoomDims.Y));
+        
+        MakeRoom(RoomsToCreate-1, TileMap, NextRoomUL, NextRoomDims);
+    }
+    if (GoDirections[1]) //d
+    {
+        v2 DoorPosition = NewRoom.ULPosition + V2((int)NewRoom.Dimensions.X/2,
+                                                  NewRoom.Dimensions.Y-1);
+
+        int HallLength = Rand(MinHallLength, MaxHallLength);
+        region Hallway = MakeRegion(TileMap,
+                                    DoorPosition + V2(0,1),
+                                    1,
+                                    HallLength);
+        v2 NextRoomDims = V2(Rand(MinRoomDimensions,
+                                  MaxRoomDimensions),
+                             Rand(MinRoomDimensions,
+                                  MaxRoomDimensions));
+        v2 NextRoomUL = V2((int)(Hallway.ULPosition.X - NextRoomDims.X/2),
+                           (int)(Hallway.ULPosition.Y+Hallway.Dimensions.Y));
+        MakeRoom(RoomsToCreate-1, TileMap, NextRoomUL, NextRoomDims);
+    }
+    if (GoDirections[2]) //l 
+    {
+        v2 DoorPosition;
+        DoorPosition = NewRoom.ULPosition + V2(0,
+                                               (int)NewRoom.Dimensions.Y/2);
+        
+        int HallLength = Rand(MinHallLength, MaxHallLength);
+        region Hallway = MakeRegion(TileMap,
+                                    DoorPosition - V2(HallLength, 0),
+                                    HallLength,
+                                    1);
+        v2 NextRoomDims = V2(Rand(MinRoomDimensions,
+                                  MaxRoomDimensions),
+                             Rand(MinRoomDimensions,
+                                  MaxRoomDimensions));
+        v2 NextRoomUL = V2((int)(Hallway.ULPosition.X - NextRoomDims.X),
+                           (int)(Hallway.ULPosition.Y - NextRoomDims.Y/2));
+        MakeRoom(RoomsToCreate-1, TileMap, NextRoomUL, NextRoomDims);
+    }
+    if (GoDirections[3]) //r
+    {
+        v2 DoorPosition;
+        DoorPosition = NewRoom.ULPosition + V2(NewRoom.Dimensions.X-1,
+                                               (int)NewRoom.Dimensions.Y/2);
+        
+        int HallLength = Rand(0, MaxHallLength);
+        region Hallway = MakeRegion(TileMap,
+                                    DoorPosition + V2(1, 0),
+                                    HallLength,
+                                    1);
+        v2 NextRoomDims = V2(Rand(MinRoomDimensions,
+                                  MaxRoomDimensions),
+                             Rand(MinRoomDimensions,
+                                  MaxRoomDimensions));
+        v2 NextRoomUL = V2((int)(Hallway.ULPosition.X+HallLength),
+                           (int)(Hallway.ULPosition.Y - NextRoomDims.Y/2));
+        MakeRoom(RoomsToCreate-1, TileMap, NextRoomUL, NextRoomDims);
     }
 }
 
@@ -217,17 +216,15 @@ void GenerateMap(int* Tiles, int MapWidth, int MapHeight, int Seed)
     ClearMap(&TileMap);
 
     srand(Seed);
+    printf("Seed: %d\n", Seed);
 
-    v2 Entrance = V2(Rand(0, MapWidth), Rand(0, MapHeight)); 
 
-    
-    for(int x = 0; x < MapWidth; x++)
+    for(int x = 0; x < MapWidth;x++)
     {
-        int id = x%10==0?TileTypes.Water.ID:TileTypes.StoneWall.ID;
-        Tiles[0+ x] = id;
-        Tiles[((MAP_HEIGHT-1)*MAP_WIDTH)+x] = id;
+        SetTile(&TileMap, V2(x, 0),  TileTypes.StoneWall.ID);
+        SetTile(&TileMap, V2(x, MapHeight-1), TileTypes.StoneWall.ID);
     }
-
+    
     for(int y = 0; y < MapHeight;y++)
     {
         Tiles[y*MapWidth + 0] = TileTypes.StoneWall.ID;
@@ -235,12 +232,17 @@ void GenerateMap(int* Tiles, int MapWidth, int MapHeight, int Seed)
     }
 
     int NumberOfRooms = 4;
-    v2 NextRoomUL = V2(Rand(0, MapWidth),
-                   Rand(0, MapHeight));
     v2 NextRoomDims = V2(Rand(MinRoomDimensions,
                               MaxRoomDimensions),
                          Rand(MinRoomDimensions,
                               MaxRoomDimensions));
+    v2 NextRoomUL = V2(Rand(0, MapWidth-NextRoomDims.X),
+                       Rand(0, MapHeight-NextRoomDims.Y));
+    v2 Entrance = NextRoomUL + V2((int)NextRoomDims.X/2, (int)NextRoomDims.Y/2);
 
     MakeRoom(NumberOfRooms, &TileMap, NextRoomUL, NextRoomDims);
+    SetTile(&TileMap, Entrance, TileTypes.Entrance.ID);
+    v2 Exit = LastRoomGenerated.ULPosition + V2((int)LastRoomGenerated.Dimensions.X/2,
+                                                (int)LastRoomGenerated.Dimensions.Y/2);
+    SetTile(&TileMap, Exit, TileTypes.Exit.ID);
 }

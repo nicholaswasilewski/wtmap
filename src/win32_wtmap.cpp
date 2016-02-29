@@ -64,6 +64,7 @@ HWND CreateConsole()
     freopen("CONOUT$", "w", stderr);
 
     Console = FindConsole();
+    SetWindowText(Console, "WTMap Console");
     ShowWindow(Console, 0);
     
     return Console;
