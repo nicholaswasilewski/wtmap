@@ -64,11 +64,17 @@ typedef struct game_memory
     void* TransientStorage;
 } game_memory;
 
-typedef struct {
+typedef struct tileMap{
     int* Tiles;
     int Width;
     int Height;
 } tileMap;
+
+typedef struct entity{
+    bool alive;
+    v2 Direction;
+    v2 Position;
+} entity;
 
 typedef struct game_screen_buffer
 {
@@ -89,6 +95,7 @@ typedef struct game_state
     //somewhere else so I can do variably sized
     //maps, but for now...
     int Tiles[MAP_WIDTH*MAP_HEIGHT];
+    entity Entities[20];
     //floor map, other state
     camera Camera;
     //player position
