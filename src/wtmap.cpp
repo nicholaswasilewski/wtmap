@@ -88,6 +88,11 @@ void DrawMap(game_screen_buffer* ScreenBuffer, camera* Camera, int* Tiles)
     }
 }
 
+void DrawEntities(game_screen_buffer* ScreenBuffer, camera* Camera)
+{
+    
+}
+
 void ClearScreenBuffer(game_screen_buffer *ScreenBuffer, color FillColor)
 {
     DrawRectangle(ScreenBuffer,
