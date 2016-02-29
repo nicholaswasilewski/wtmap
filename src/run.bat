@@ -1,3 +1,3 @@
 @echo off
 
-..\bin\win32_wtmap.exe
+start ..\bin\win32_wtmap.exe
