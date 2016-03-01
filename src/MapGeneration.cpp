@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include "wtmap.h"
 
 typedef struct {
     int MinHallLength;
@@ -293,13 +294,9 @@ void MakeRoom(int RoomsToCreate,
     }
 }
 
-void GenerateMap(game_state *GameState, map_gen_parameters* Params,int* Tiles, int MapWidth, int MapHeight, int Seed)
+void GenerateMap(game_state *GameState, map_gen_parameters* Params, int Seed)
 {
-    tileMap TileMap = {
-        Tiles,
-        MapWidth,
-        MapHeight
-    };
+    tileMap *TileMap = &GameState->TileMap;
 
     map_gen_results Results = {0};
 
@@ -321,22 +318,22 @@ void GenerateMap(game_state *GameState, map_gen_parameters* Params,int* Tiles, i
         GameState->Entities[i].Alive = true;
     }
     
-    ClearMap(&TileMap);
+    ClearMap(TileMap);
 
     srand(Seed);
     printf("Seed: %d\n", Seed);
 
 
-    for(int x = 0; x < MapWidth;x++)
+    for(int x = 0; x < TileMap->Width;x++)
     {
-        SetTile(&TileMap, V2(x, 0),  TileTypes.StoneWall.ID);
-        SetTile(&TileMap, V2(x, MapHeight-1), TileTypes.StoneWall.ID);
+        SetTile(TileMap, V2(x, 0),  TileTypes.StoneWall.ID);
+        SetTile(TileMap, V2(x, TileMap->Height-1), TileTypes.StoneWall.ID);
     }
     
-    for(int y = 0; y < MapHeight;y++)
+    for(int y = 0; y < TileMap->Height;y++)
     {
-        Tiles[y*MapWidth + 0] = TileTypes.StoneWall.ID;
-        Tiles[y*MapWidth + MapWidth-1] = TileTypes.StoneWall.ID;
+        TileMap->Tiles[y*TileMap->Width + 0] = TileTypes.StoneWall.ID;
+        TileMap->Tiles[y*TileMap->Width + TileMap->Width-1] = TileTypes.StoneWall.ID;
     }
 
     int NumberOfRooms = 4;
@@ -344,16 +341,16 @@ void GenerateMap(game_state *GameState, map_gen_parameters* Params,int* Tiles, i
                               Params->MaxRoomDimensions),
                          Rand(Params->MinRoomDimensions,
                               Params->MaxRoomDimensions));
-    v2 NextRoomUL = V2(Rand(0, MapWidth-NextRoomDims.X),
-                       Rand(0, MapHeight-NextRoomDims.Y));
+    v2 NextRoomUL = V2(Rand(0, TileMap->Width-NextRoomDims.X),
+                       Rand(0, TileMap->Height-NextRoomDims.Y));
     v2 Entrance = NextRoomUL + V2((int)NextRoomDims.X/2, (int)NextRoomDims.Y/2);
     
-    MakeRoom(NumberOfRooms, Params, &TileMap, NextRoomUL, NextRoomDims, &Results);
-    SetTile(&TileMap, Entrance, TileTypes.Entrance.ID);
+    MakeRoom(NumberOfRooms, Params, TileMap, NextRoomUL, NextRoomDims, &Results);
+    SetTile(TileMap, Entrance, TileTypes.Entrance.ID);
     GameState->Camera.Center = Entrance;
     
     v2 Exit = Results.Exit;
-    SetTile(&TileMap, Exit, TileTypes.Exit.ID);
+    SetTile(TileMap, Exit, TileTypes.Exit.ID);
 
     printf("Rooms Created: %d\n", Results.RoomsCreated);
 }

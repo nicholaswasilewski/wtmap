@@ -114,7 +114,7 @@ void ShowConsole(win32_state* State, bool Show)
 {
     if (!State->Console)
     {
-        State->Console = FindConsole();
+        State->Console = CreateConsole();
         RECT MainWindowRect;
         GetWindowRect(State->MainWindow, &MainWindowRect);
         RECT ConsoleRect;
@@ -363,7 +363,7 @@ int CALLBACK WinMain(
     int ShowCode)
 {
     win32_state State = {};
-    HWND Console = CreateConsole();
+    State.Console = CreateConsole();
     CreateMutex(0, 0, ConsoleInputMutexName);
 
     DWORD ConsoleReadThreadID;

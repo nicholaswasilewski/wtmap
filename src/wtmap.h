@@ -19,6 +19,31 @@ typedef unsigned __int64 uint64;
 #define Assert(Expression) \
     if(!(Expression)) (*(int*)0 = 0)
 
+struct memory_arena
+{
+    size_t Size;
+    uint8 *Base;
+    size_t Used;
+};
+
+#define PushSize(Arena, type) (type *)PushSize_(Arena, sizeof(type))
+#define PushArray(Arena, Count, type) (type *)PushSize_(Arena, (Count)*sizeof(type))
+void*
+PushSize_(memory_arena *Arena, size_t Size)
+{
+    Assert((Arena->Used + Size) <= (Arena->Size));
+    void *NewSpace = Arena->Base + Arena->Used;
+    Arena->Used += Size;
+
+    return NewSpace;
+}
+
+void InitArena(memory_arena *Arena, size_t Size, uint8 *Base)
+{
+    Arena->Size = Size;
+    Arena->Base = Base;
+    Arena->Used = 0;
+}
 
 typedef struct game_button_state
 {
@@ -86,19 +111,20 @@ typedef struct game_screen_buffer
 } game_screen_buffer;
 
 //these should ABSOLUTELY not be hardcoded
-#define MAP_WIDTH 150
-#define MAP_HEIGHT 100
 #define ENTITY_COUNT 150
 typedef struct game_state
 {
     int FloorNumber;
     float CameraMoveSpeed;
     float TickCounter;
+
+    memory_arena TilesArena;
     
     //I really should put this
     //somewhere else so I can do variably sized
     //maps, but for now...
-    int Tiles[MAP_WIDTH*MAP_HEIGHT];
+    tileMap TileMap;
+    int *Tiles;
     entity Entities[ENTITY_COUNT];
     //floor map, other state
     camera Camera;

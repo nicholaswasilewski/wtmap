@@ -74,18 +74,18 @@ void DrawTile(game_screen_buffer* ScreenBuffer, camera* Camera, color TileColor,
     DrawRectangle(ScreenBuffer, Min, Max, TileColor.R, TileColor.G, TileColor.B);
 }
 
-void DrawMap(game_screen_buffer* ScreenBuffer, camera* Camera, int* Tiles)
+void DrawMap(game_screen_buffer* ScreenBuffer, camera* Camera, tileMap* TileMap)
 {
-    int* Row = Tiles; 
-    for(int y = 0; y < MAP_HEIGHT; y++)
+    int* Row = TileMap->Tiles; 
+    for(int y = 0; y < TileMap->Height; y++)
     {
         int* Tile = Row;
-        for(int x = 0; x < MAP_WIDTH; x++)
+        for(int x = 0; x < TileMap->Width; x++)
         {   
             DrawTile(ScreenBuffer, Camera, TileTypes.Values[*Tile].Color, V2(x, y));
             Tile += 1;
         }
-        Row += MAP_WIDTH;
+        Row += TileMap->Width;
     }
 }
 
@@ -148,8 +148,8 @@ void ProcessConsoleInput(game_input* Input, game_memory* Memory, game_screen_buf
                 EntitiesToPlace,
                 GameState->Entities,
             };
-            
-            GenerateMap(GameState, &Params, Tiles, MAP_WIDTH, MAP_HEIGHT, Seed);
+            tileMap* TileMap = &GameState->TileMap;
+            GenerateMap(GameState, &Params, Seed);
         }
         else if (strcmp(commandString, "camspeed") == 0)
         {
@@ -213,7 +213,8 @@ void UpdateEntities(game_state* GameState, tileMap* TileMap)
 void UpdateAndRender(game_input* Input, game_input* LastInput, game_memory *Memory, game_screen_buffer *ScreenBuffer)
 {
     game_state *GameState = (game_state *)Memory->PermanentStorage;
-    int *Tiles = GameState->Tiles;
+
+    int* Tiles;
     if (!Memory->IsInitialized)
     {
         GameState->Camera.WorldUnitsToPixels = 16;
@@ -227,6 +228,19 @@ void UpdateAndRender(game_input* Input, game_input* LastInput, game_memory *Memo
     
         int EntitiesToPlace = ENTITY_COUNT;
     
+        int MapWidth = 200;
+        int MapHeight = 200;
+
+        memory_arena* TilesArena = &GameState->TilesArena;
+        InitArena(TilesArena, MapWidth*MapHeight*sizeof(int),
+                  (uint8 *)Memory->PermanentStorage+sizeof(game_state));
+        
+        GameState->TileMap = {
+            PushArray(TilesArena, MapWidth*MapHeight, int),
+            MapWidth,
+            MapHeight
+        };
+    
         map_gen_parameters MapGenParams = {
             MinHallLength,
             MaxHallLength,
@@ -235,8 +249,10 @@ void UpdateAndRender(game_input* Input, game_input* LastInput, game_memory *Memo
             EntitiesToPlace,
             GameState->Entities,
         };
-
-        GenerateMap(GameState, &MapGenParams, Tiles, MAP_WIDTH, MAP_HEIGHT, time(0));
+        
+        GenerateMap(GameState,
+                    &MapGenParams,
+                    time(0));
         Memory->IsInitialized = true;
     }
 
@@ -296,27 +312,22 @@ void UpdateAndRender(game_input* Input, game_input* LastInput, game_memory *Memo
             GameState->Entities,
         };
 
-        GenerateMap(GameState, &MapGenParams, Tiles, MAP_WIDTH, MAP_HEIGHT, time(0));
+        GenerateMap(GameState, &MapGenParams, time(0));
     }
     
     GameState->Camera.Center = GameState->Camera.Center + (CameraMove*CameraMoveSpeed);
 
-    tileMap TileMap = {
-        Tiles,
-        MAP_WIDTH,
-        MAP_HEIGHT
-    };
     
     GameState->TickCounter += Input->dt;
     if (GameState->TickCounter >= 0.2f)
     {
-        UpdateEntities(GameState, &TileMap);
+        UpdateEntities(GameState, &GameState->TileMap);
         GameState->TickCounter -= 0.2f;
     }
 
     
     color FillColor = Black;
     ClearScreenBuffer(ScreenBuffer, FillColor);
-    DrawMap(ScreenBuffer, &GameState->Camera, Tiles);
+    DrawMap(ScreenBuffer, &GameState->Camera, &GameState->TileMap);
     DrawEntities(GameState, ScreenBuffer, &GameState->Camera);
 }
