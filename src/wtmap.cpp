@@ -67,7 +67,7 @@ void DrawTile(game_screen_buffer* ScreenBuffer, camera* Camera, color TileColor,
                                                        V2(ScreenBuffer->Width/2, ScreenBuffer->Height/2),
                                                        TileCenterPosition);
 
-    int TilePixels = Camera->WorldUnitsToPixels;
+    float TilePixels = Camera->WorldUnitsToPixels;
     v2 ScreenTileSize = V2(0.5f*TilePixels, 0.5f*TilePixels);
     v2 Min = TileCenterScreenPoint - ScreenTileSize + V2(1, 1);
     v2 Max = TileCenterScreenPoint + ScreenTileSize - V2(1, 1);
@@ -210,7 +210,7 @@ void UpdateEntities(game_state* GameState, tileMap* TileMap)
     }
 }
 
-void UpdateAndRender(game_input* Input, game_memory *Memory, game_screen_buffer *ScreenBuffer)
+void UpdateAndRender(game_input* Input, game_input* LastInput, game_memory *Memory, game_screen_buffer *ScreenBuffer)
 {
     game_state *GameState = (game_state *)Memory->PermanentStorage;
     int *Tiles = GameState->Tiles;
@@ -235,7 +235,7 @@ void UpdateAndRender(game_input* Input, game_memory *Memory, game_screen_buffer 
             EntitiesToPlace,
             GameState->Entities,
         };
-        
+
         GenerateMap(GameState, &MapGenParams, Tiles, MAP_WIDTH, MAP_HEIGHT, time(0));
         Memory->IsInitialized = true;
     }
@@ -258,6 +258,47 @@ void UpdateAndRender(game_input* Input, game_memory *Memory, game_screen_buffer 
     {
         CameraMove.X += 1;
     }
+
+    if (Input->Keyboard.LeftShoulder.Down)
+    {
+        GameState->Camera.WorldUnitsToPixels -= 0.25f;
+        if (GameState->Camera.WorldUnitsToPixels < 4.0f)
+        {
+            GameState->Camera.WorldUnitsToPixels = 4.0f;
+        }
+    }
+    if (Input->Keyboard.RightShoulder.Down)
+    {
+        GameState->Camera.WorldUnitsToPixels += .25f;
+        if (GameState->Camera.WorldUnitsToPixels > 64.0f)
+        {
+            GameState->Camera.WorldUnitsToPixels = 64.0f;
+        }
+    }
+
+    if (Input->Keyboard.Start.Down && !LastInput->Keyboard.Start.Down)
+    {
+        
+        int MinHallLength = 0;
+        int MaxHallLength = 8;
+        
+        int MinRoomDimensions = 4;
+        int MaxRoomDimensions = 8;
+    
+        int EntitiesToPlace = ENTITY_COUNT;
+    
+        map_gen_parameters MapGenParams = {
+            MinHallLength,
+            MaxHallLength,
+            MinRoomDimensions,
+            MaxRoomDimensions,
+            EntitiesToPlace,
+            GameState->Entities,
+        };
+
+        GenerateMap(GameState, &MapGenParams, Tiles, MAP_WIDTH, MAP_HEIGHT, time(0));
+    }
+    
     GameState->Camera.Center = GameState->Camera.Center + (CameraMove*CameraMoveSpeed);
 
     tileMap TileMap = {

@@ -520,7 +520,7 @@ int CALLBACK WinMain(
                 ProcessConsoleInput(NewInput, &GameMemory, &Buffer, ConsoleBuffer);
             }
         }
-        UpdateAndRender(NewInput, &GameMemory, &Buffer);
+        UpdateAndRender(NewInput, LastInput, &GameMemory, &Buffer);
         //post work
         LARGE_INTEGER TimeNow = GetCPUTime();
         float FrameSecondsElapsed = Win32GetSecondsElapsed(LastCounter, TimeNow);
