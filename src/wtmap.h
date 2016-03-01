@@ -86,9 +86,9 @@ typedef struct game_screen_buffer
 } game_screen_buffer;
 
 //these should ABSOLUTELY not be hardcoded
-#define MAP_WIDTH 100
+#define MAP_WIDTH 150
 #define MAP_HEIGHT 100
-#define ENTITY_COUNT 100
+#define ENTITY_COUNT 150
 typedef struct game_state
 {
     int FloorNumber;

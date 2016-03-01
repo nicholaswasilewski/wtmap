@@ -216,7 +216,7 @@ void UpdateAndRender(game_input* Input, game_memory *Memory, game_screen_buffer 
     int *Tiles = GameState->Tiles;
     if (!Memory->IsInitialized)
     {
-        GameState->Camera.WorldUnitsToPixels = 4;
+        GameState->Camera.WorldUnitsToPixels = 16;
         GameState->CameraMoveSpeed = 10.0f;
         
         int MinHallLength = 0;
@@ -237,7 +237,6 @@ void UpdateAndRender(game_input* Input, game_memory *Memory, game_screen_buffer 
         };
         
         GenerateMap(GameState, &MapGenParams, Tiles, MAP_WIDTH, MAP_HEIGHT, time(0));
-        GameState->Camera.Center = V2(MAP_WIDTH/2, MAP_HEIGHT/2);
         Memory->IsInitialized = true;
     }
 

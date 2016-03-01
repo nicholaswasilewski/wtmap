@@ -13,7 +13,6 @@ typedef struct {
 } map_gen_parameters;
 
 typedef struct {
-    int EntitiesPlaced;
     int RoomsCreated;
     v2 Exit;
 } map_gen_results;
@@ -167,21 +166,14 @@ void MakeRoom(int RoomsToCreate,
             Results->Exit = GetCenterOfRegionInt(NewRoom);
         }
     }
-
-    if (Results->EntitiesPlaced < MapGenParams->EntitiesToPlace)
+    
+    for(int i = 0; i < ENTITY_COUNT; i++)
     {
-        //1/5 chance of putting an entity in a room, I guess
-        for(int i = 0; i < ENTITY_COUNT; i++)
+        if (Rand(Results->RoomsCreated) == 0)
         {
-            if (Rand(Results->RoomsCreated) == 0)
-            {
-                v2 CenterOfRoom = GetCenterOfRegionInt(NewRoom);
-                MapGenParams->Entities[Results->EntitiesPlaced].Alive = true;
-                MapGenParams->Entities[Results->EntitiesPlaced].Position = CenterOfRoom;
-            }
+            v2 CenterOfRoom = GetCenterOfRegionInt(NewRoom);
+            MapGenParams->Entities[i].Position = CenterOfRoom;
         }
-        
-        Results->EntitiesPlaced++;
     }
     
     //this is delicate work
@@ -326,6 +318,7 @@ void GenerateMap(game_state *GameState, map_gen_parameters* Params,int* Tiles, i
             EntityDirection = V2(1,0);
                 
         GameState->Entities[i].Direction = EntityDirection;
+        GameState->Entities[i].Alive = true;
     }
     
     ClearMap(&TileMap);
@@ -357,6 +350,8 @@ void GenerateMap(game_state *GameState, map_gen_parameters* Params,int* Tiles, i
     
     MakeRoom(NumberOfRooms, Params, &TileMap, NextRoomUL, NextRoomDims, &Results);
     SetTile(&TileMap, Entrance, TileTypes.Entrance.ID);
+    GameState->Camera.Center = Entrance;
+    
     v2 Exit = Results.Exit;
     SetTile(&TileMap, Exit, TileTypes.Exit.ID);
 
