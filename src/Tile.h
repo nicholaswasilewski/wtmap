@@ -21,7 +21,7 @@ typedef struct tilesData {
             tileData Door;
             tileData Blood;
             tileData Slime;
-            tileData Gold;
+            tileData GenericMonster;
         };
         tileData Values[10];
     };
@@ -36,7 +36,7 @@ tileData Exit = {5, 255, 0, 0, 255};
 tileData Door = {6, 153, 102, 51, 255};
 tileData Blood = {7, 230, 0, 0, 255};
 tileData Slime = {8, 0, 153, 0, 255};
-tileData Gold = {9, 255, 204, 0, 255};
+tileData GenericMonster = {9, 255, 255, 0, 255};
 
 tilesData TileTypes = {
     Blank,
@@ -48,7 +48,7 @@ tilesData TileTypes = {
     Door,
     Blood,
     Slime,
-    Gold
+    GenericMonster
 };
 
 

@@ -452,6 +452,7 @@ int CALLBACK WinMain(
 
     float GameUpdateHz = (HardRefreshHz/2.0f);
     float TargetFrameSeconds = 1.0f/GameUpdateHz;
+    printf("%f\n", TargetFrameSeconds);
 
     game_memory GameMemory = {};
     GameMemory.PermanentStorageSize = Megabytes(64);

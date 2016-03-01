@@ -71,7 +71,7 @@ typedef struct tileMap{
 } tileMap;
 
 typedef struct entity{
-    bool alive;
+    bool Alive;
     v2 Direction;
     v2 Position;
 } entity;
@@ -85,18 +85,21 @@ typedef struct game_screen_buffer
 	int BytesPerPixel;
 } game_screen_buffer;
 
+//these should ABSOLUTELY not be hardcoded
 #define MAP_WIDTH 100
 #define MAP_HEIGHT 100
+#define ENTITY_COUNT 20
 typedef struct game_state
 {
     int FloorNumber;
     float CameraMoveSpeed;
+    float TickCounter;
     
     //I really should put this
     //somewhere else so I can do variably sized
     //maps, but for now...
     int Tiles[MAP_WIDTH*MAP_HEIGHT];
-    entity Entities[20];
+    entity Entities[ENTITY_COUNT];
     //floor map, other state
     camera Camera;
     //player position

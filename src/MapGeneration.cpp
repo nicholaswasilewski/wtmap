@@ -1,6 +1,28 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+typedef struct {
+    int MinHallLength;
+    int MaxHallLength;
+
+    int MinRoomDimensions;
+    int MaxRoomDimensions;
+
+    int EntitiesToPlace;
+    entity* Entities;
+} map_gen_parameters;
+
+typedef struct {
+    int EntitiesPlaced;
+    int RoomsCreated;
+    v2 Exit;
+} map_gen_results;
+
+typedef struct{
+    v2 ULPosition;
+    v2 Dimensions;
+} region;
+
 inline int Rand(int Min, int MaxExclusive)
 {
     int Range = (MaxExclusive-1) - Min;
@@ -10,7 +32,6 @@ inline int Rand(int Min, int MaxExclusive)
 
 inline int Rand(int MaxExclusive)
 {
- 
    return Rand(0, MaxExclusive);
 }
 
@@ -59,11 +80,6 @@ int SampleTile(tileMap* TileMap, v2 TilePosition)
         return TileMap->Tiles[(int)(TilePosition.X + TilePosition.Y*TileMap->Width)];
     }
 }
-
-typedef struct{
-    v2 ULPosition;
-    v2 Dimensions;
-} region;
 
 inline v2 GetCenterOfRegionInt(region FindMyCenter)
 {
@@ -118,27 +134,6 @@ region MakeRegion(tileMap* TileMap, v2 ULPosition, int RoomWidth, int RoomHeight
     return CreatedRoom;
 }
 
-//map generation parameters
-
-typedef struct {
-    int MinHallLength;
-    int MaxHallLength;
-
-    int MinRoomDimensions;
-    int MaxRoomDimensions;
-
-    int EntitiesToPlace;
-    entity* Entities;
-} map_gen_parameters;
-
-typedef struct {
-    int EntitiesPlaced;
-    int RoomsCreated;
-    v2 Exit;
-} map_gen_results;
-
-int RoomCount = 0;
-
 region LastRoomGenerated;
 //TODO: Make rooms to create do something
 //TODO: make this a breadth first generation instead of depth first
@@ -164,9 +159,28 @@ void MakeRoom(int RoomsToCreate,
     LastRoomGenerated = NewRoom;
     Results->RoomsCreated += 1;
 
-    if (Rand(Results->RoomsCreated) == 0)
+    //equal chance to put the exit in any room! Unless we only make one room...
+    if (Results->RoomsCreated-1 >= 0)
     {
-        Results->Exit = GetCenterOfRegionInt(NewRoom);
+        if (Rand(Results->RoomsCreated-1) == 0)
+        {
+            Results->Exit = GetCenterOfRegionInt(NewRoom);
+        }
+    }
+
+    if (Results->EntitiesPlaced < MapGenParams->EntitiesToPlace)
+    {
+        //1/5 chance of putting an entity in a room, I guess
+        if (Rand(0, 5) == 0)
+        {
+            v2 CenterOfRoom = GetCenterOfRegionInt(NewRoom);
+            MapGenParams->Entities[Results->EntitiesPlaced].Alive = true;
+            MapGenParams->Entities[Results->EntitiesPlaced].Position = CenterOfRoom;
+            MapGenParams->Entities[Results->EntitiesPlaced].Direction = V2(RandBool()?-1:1,
+                                                                           RandBool()?-1:1);
+        }
+        
+        Results->EntitiesPlaced++;
     }
     
     //this is delicate work
@@ -286,7 +300,7 @@ void MakeRoom(int RoomsToCreate,
     }
 }
 
-void GenerateMap(game_state *GameState, int* Tiles, int MapWidth, int MapHeight, int Seed)
+void GenerateMap(game_state *GameState, map_gen_parameters* Params,int* Tiles, int MapWidth, int MapHeight, int Seed)
 {
     tileMap TileMap = {
         Tiles,
@@ -294,25 +308,13 @@ void GenerateMap(game_state *GameState, int* Tiles, int MapWidth, int MapHeight,
         MapHeight
     };
 
-    int MinHallLength = 0;
-    int MaxHallLength = 8;
-    
-    int MinRoomDimensions = 4;
-    int MaxRoomDimensions = 8;
-
-    int EntitiesToPlace = 20;
-    
-    map_gen_parameters Params = {
-        MinHallLength,
-        MaxHallLength,
-        MinRoomDimensions,
-        MaxRoomDimensions,
-        EntitiesToPlace,
-        GameState->Entities,
-    };
-
     map_gen_results Results = {0};
-    
+
+    //kill all entities;
+    for(int i = 0; i < ENTITY_COUNT; i++)
+    {
+        Params->Entities[i].Alive = 0;
+    }
     ClearMap(&TileMap);
 
     srand(Seed);
@@ -332,18 +334,18 @@ void GenerateMap(game_state *GameState, int* Tiles, int MapWidth, int MapHeight,
     }
 
     int NumberOfRooms = 4;
-    v2 NextRoomDims = V2(Rand(MinRoomDimensions,
-                              MaxRoomDimensions),
-                         Rand(MinRoomDimensions,
-                              MaxRoomDimensions));
+    v2 NextRoomDims = V2(Rand(Params->MinRoomDimensions,
+                              Params->MaxRoomDimensions),
+                         Rand(Params->MinRoomDimensions,
+                              Params->MaxRoomDimensions));
     v2 NextRoomUL = V2(Rand(0, MapWidth-NextRoomDims.X),
                        Rand(0, MapHeight-NextRoomDims.Y));
     v2 Entrance = NextRoomUL + V2((int)NextRoomDims.X/2, (int)NextRoomDims.Y/2);
     
-    MakeRoom(NumberOfRooms, &Params, &TileMap, NextRoomUL, NextRoomDims, &Results);
+    MakeRoom(NumberOfRooms, Params, &TileMap, NextRoomUL, NextRoomDims, &Results);
     SetTile(&TileMap, Entrance, TileTypes.Entrance.ID);
     v2 Exit = Results.Exit;
     SetTile(&TileMap, Exit, TileTypes.Exit.ID);
 
-    printf("Rooms Created: %d", Results.RoomsCreated);
+    printf("Rooms Created: %d\n", Results.RoomsCreated);
 }
