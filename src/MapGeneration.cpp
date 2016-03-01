@@ -171,24 +171,14 @@ void MakeRoom(int RoomsToCreate,
     if (Results->EntitiesPlaced < MapGenParams->EntitiesToPlace)
     {
         //1/5 chance of putting an entity in a room, I guess
-        if (Rand(0, 5) == 0)
+        for(int i = 0; i < ENTITY_COUNT; i++)
         {
-            v2 CenterOfRoom = GetCenterOfRegionInt(NewRoom);
-            MapGenParams->Entities[Results->EntitiesPlaced].Alive = true;
-            MapGenParams->Entities[Results->EntitiesPlaced].Position = CenterOfRoom;
-
-            int EntityDirectionCode = Rand(4);
-            v2 EntityDirection;
-            if (EntityDirectionCode == 0)
-                EntityDirection = V2(0,-1);
-            if (EntityDirectionCode == 1)
-                EntityDirection = V2(0,1);
-            if (EntityDirectionCode == 2)
-                EntityDirection = V2(-1,0);
-            if (EntityDirectionCode == 3)
-                EntityDirection = V2(1,0);
-                
-            MapGenParams->Entities[Results->EntitiesPlaced].Direction = EntityDirection;
+            if (Rand(Results->RoomsCreated) == 0)
+            {
+                v2 CenterOfRoom = GetCenterOfRegionInt(NewRoom);
+                MapGenParams->Entities[Results->EntitiesPlaced].Alive = true;
+                MapGenParams->Entities[Results->EntitiesPlaced].Position = CenterOfRoom;
+            }
         }
         
         Results->EntitiesPlaced++;
@@ -324,8 +314,20 @@ void GenerateMap(game_state *GameState, map_gen_parameters* Params,int* Tiles, i
     //kill all entities;
     for(int i = 0; i < ENTITY_COUNT; i++)
     {
-        Params->Entities[i].Alive = 0;
+        int EntityDirectionCode = Rand(4);
+        v2 EntityDirection;
+        if (EntityDirectionCode == 0)
+            EntityDirection = V2(0,-1);
+        if (EntityDirectionCode == 1)
+            EntityDirection = V2(0,1);
+        if (EntityDirectionCode == 2)
+            EntityDirection = V2(-1,0);
+        if (EntityDirectionCode == 3)
+            EntityDirection = V2(1,0);
+                
+        GameState->Entities[i].Direction = EntityDirection;
     }
+    
     ClearMap(&TileMap);
 
     srand(Seed);

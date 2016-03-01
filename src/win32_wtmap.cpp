@@ -455,8 +455,8 @@ int CALLBACK WinMain(
     printf("%f\n", TargetFrameSeconds);
 
     game_memory GameMemory = {};
-    GameMemory.PermanentStorageSize = Megabytes(64);
-    GameMemory.TransientStorageSize = Megabytes(256);
+    GameMemory.PermanentStorageSize = Megabytes(5);
+    GameMemory.TransientStorageSize = Megabytes(1);
 
     State.TotalSize = GameMemory.PermanentStorageSize + GameMemory.TransientStorageSize;
     State.GameMemoryBlock = VirtualAlloc(0,

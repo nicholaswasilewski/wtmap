@@ -7,6 +7,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdio.h>
+
 void DrawRectangle(game_screen_buffer* ScreenBuffer,
                    v2 Min,
                    v2 Max,
@@ -174,16 +175,38 @@ void ProcessConsoleInput(game_input* Input, game_memory* Memory, game_screen_buf
     }
 }
 
-void UpdateEntity(game_state* GameState, entity* Entity)
+void UpdateEntity(game_state* GameState, tileMap* TileMap, entity* Entity)
 {
-    
+    v2 NextPosition = Entity->Position + Entity->Direction;
+    if(SampleTile(TileMap,NextPosition) != TileTypes.StoneFloor.ID || Rand(10) == 0)
+    {
+        switch(Rand(3))
+        {
+            case 0:
+                Entity->Direction = -1.0 * Entity->Direction;
+                break;
+            case 1:
+                Entity->Direction = V2(Entity->Direction.Y, -Entity->Direction.X);
+                break;
+            default:
+                Entity->Direction = V2(- Entity->Direction.Y, Entity->Direction.X);
+        }  
+    }
+    else
+    {
+        Entity->Position += Entity->Direction;
+    }
 }
 
-void UpdateEntities(game_state* GameState)
+
+void UpdateEntities(game_state* GameState, tileMap* TileMap)
 {
     for(int i = 0; i < ENTITY_COUNT; i++)
     {
-        UpdateEntity(GameState, &GameState->Entities[i]);
+        if (GameState->Entities[i].Alive)
+        {
+            UpdateEntity(GameState, TileMap, &GameState->Entities[i]);
+        }
     }
 }
 
@@ -202,7 +225,7 @@ void UpdateAndRender(game_input* Input, game_memory *Memory, game_screen_buffer 
         int MinRoomDimensions = 4;
         int MaxRoomDimensions = 8;
     
-        int EntitiesToPlace = 20;
+        int EntitiesToPlace = ENTITY_COUNT;
     
         map_gen_parameters MapGenParams = {
             MinHallLength,
@@ -238,11 +261,17 @@ void UpdateAndRender(game_input* Input, game_memory *Memory, game_screen_buffer 
     }
     GameState->Camera.Center = GameState->Camera.Center + (CameraMove*CameraMoveSpeed);
 
+    tileMap TileMap = {
+        Tiles,
+        MAP_WIDTH,
+        MAP_HEIGHT
+    };
+    
     GameState->TickCounter += Input->dt;
-    if (GameState->TickCounter >= 1.0f)
+    if (GameState->TickCounter >= 0.2f)
     {
-        UpdateEntities(GameState);
-        GameState->TickCounter -= 1.0f;
+        UpdateEntities(GameState, &TileMap);
+        GameState->TickCounter -= 0.2f;
     }
 
     
