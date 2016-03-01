@@ -174,8 +174,17 @@ void ProcessConsoleInput(game_input* Input, game_memory* Memory, game_screen_buf
     }
 }
 
+void UpdateEntity(game_state* GameState, entity* Entity)
+{
+    
+}
+
 void UpdateEntities(game_state* GameState)
 {
+    for(int i = 0; i < ENTITY_COUNT; i++)
+    {
+        UpdateEntity(GameState, &GameState->Entities[i]);
+    }
 }
 
 void UpdateAndRender(game_input* Input, game_memory *Memory, game_screen_buffer *ScreenBuffer)
