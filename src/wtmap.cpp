@@ -176,8 +176,6 @@ void ProcessConsoleInput(game_input* Input, game_memory* Memory, game_screen_buf
 
 void UpdateEntities(game_state* GameState)
 {
-    static int x = 0;
-    printf("Tick %d\n", x++);
 }
 
 void UpdateAndRender(game_input* Input, game_memory *Memory, game_screen_buffer *ScreenBuffer)
