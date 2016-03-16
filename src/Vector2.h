@@ -19,7 +19,7 @@ V2(float X, float Y)
     return Result;
 }
 
-inline Vector2
+Vector2
 operator*(float A, Vector2 B)
 {
     Vector2 Result;

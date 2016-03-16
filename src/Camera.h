@@ -2,7 +2,7 @@
 #include "Vector2.h"
 
 
-typedef struct Camera {
+typedef struct camera {
     v2 Center;
     float WorldUnitsToPixels;
 } camera;

@@ -126,11 +126,10 @@ void ProcessConsoleInput(game_input* Input, game_memory* Memory, game_screen_buf
             }
             else
             {
-                Seed = time(0);
+                Seed = (int)time(0);
             }
             
             game_state *GameState = (game_state *)Memory->PermanentStorage;
-            int *Tiles = GameState->Tiles;
             
             int MinHallLength = 0;
             int MaxHallLength = 8;
@@ -148,7 +147,6 @@ void ProcessConsoleInput(game_input* Input, game_memory* Memory, game_screen_buf
                 EntitiesToPlace,
                 GameState->Entities,
             };
-            tileMap* TileMap = &GameState->TileMap;
             GenerateMap(GameState, &Params, Seed);
         }
         else if (strcmp(commandString, "camspeed") == 0)
@@ -213,8 +211,6 @@ void UpdateEntities(game_state* GameState, tileMap* TileMap)
 void UpdateAndRender(game_input* Input, game_input* LastInput, game_memory *Memory, game_screen_buffer *ScreenBuffer)
 {
     game_state *GameState = (game_state *)Memory->PermanentStorage;
-
-    int* Tiles;
     if (!Memory->IsInitialized)
     {
         GameState->Camera.WorldUnitsToPixels = 16;
@@ -252,7 +248,7 @@ void UpdateAndRender(game_input* Input, game_input* LastInput, game_memory *Memo
         
         GenerateMap(GameState,
                     &MapGenParams,
-                    time(0));
+                    (int)time(0));
         Memory->IsInitialized = true;
     }
 
@@ -312,7 +308,7 @@ void UpdateAndRender(game_input* Input, game_input* LastInput, game_memory *Memo
             GameState->Entities,
         };
 
-        GenerateMap(GameState, &MapGenParams, time(0));
+        GenerateMap(GameState, &MapGenParams, (int)time(0));
     }
     
     GameState->Camera.Center = GameState->Camera.Center + (CameraMove*CameraMoveSpeed);
